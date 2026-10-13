@@ -15,7 +15,7 @@ API_URL = os.getenv(
     "API_URL",
     "http://127.0.0.1:8000",
 ).rstrip("/")
-st.write("API URL:", API_URL)
+# st.write("API URL:", API_URL)
 #Header
 st.title("🏠 California House Price Predictor")
 st.write("Predict California Hoousing Values in seconds with the power of AI")
@@ -101,7 +101,7 @@ with tab1:
                 response = requests.post(
                     f"{API_URL}/predict",
                     json=payload,
-                    timeout=10
+                    timeout=(10,120)
                 )
         # st.write(response.status_code)
             if response.status_code ==200:
