@@ -187,7 +187,7 @@ with tab2:
                 response = requests.post(
                     f"{API_URL}/predict-file",
                     files=files,
-                    timeout=(10,120)                  
+                    timeout=(10,150)                  
                 )
                 # st.write(response.status_code)
                 if response.status_code == 200:
