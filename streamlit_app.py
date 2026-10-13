@@ -95,7 +95,8 @@ with tab1:
             "Longitude" : long
         }
         st.json(payload)
-        API_URL = "http://127.0.0.1:8000/predict"
+        # API_URL = "http://127.0.0.1:8000/predict"
+        st.write("Sending request to:", f"{API_URL}/predict")
         try:
             with st.spinner("Predicting House price...."):
                 response = requests.post(
@@ -126,8 +127,9 @@ with tab1:
                 st.error(f"Request failed with status code: {response.status_code}")
         except requests.exceptions.Timeout:
             st.error("Request timed out. Please try again.")
-        except requests.exceptions.ConnectionError:
+        except requests.exceptions.ConnectionError as e:
             st.error("Cannot connect to FastAPI. Please check if the server is running.")
+            st.exception(e)
         except requests.exceptions.RequestException as e:
              st.error(f"API request failed: {e}")
         except (ValueError, KeyError, TypeError):
@@ -188,7 +190,7 @@ with tab2:
                 response = requests.post(
                     f"{API_URL}/predict-file",
                     files=files,
-                    timeout=(10,150)                  
+                    timeout=(10,120)                  
                 )
                 # st.write(response.status_code)
                 if response.status_code == 200:
@@ -202,8 +204,9 @@ with tab2:
                     st.error("Prediction failed due to a backend error.")
                 else:
                     st.error(f"Batch prediction failed: {response.status_code}")
-            except requests.exceptions.ConnectionError:
+            except requests.exceptions.ConnectionError as e:
                 st.error("Cannot connect to FastAPI. Please start the backend server.")
+                st.exception(e)
                 
             except requests.exceptions.Timeout:
                 st.error("Request timed out. Please try again.")       
