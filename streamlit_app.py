@@ -68,22 +68,24 @@ with tab1:
             )
             lat = st.number_input(
                 "Latitude",
-                min_value=-90.0,
-                max_value=90.0,
                 step=0.01,
-                value=37.33
+                value=37.33,
+                help="Allowed range: -90 to 90"
             )
             long = st.number_input(
                 "Longitude",
-                min_value=-180.0,
-                max_value=180.0,
                 step=0.01,
-                value=-121.89
+                value=-121.89,
+                help="Enter longitude between -180 and 180"
             )
             
         sub = st.form_submit_button("Submit data")
     
     if sub:
+        if long < -180 or long > 180:
+             st.error("Invalid Longitude! Enter a value between -180 and 180.")
+        elif lat < -90 or lat > 90:
+                st.error("Invalid Latitude! Enter a value between -90 and 90.")
         payload = {
             "MedInc" : med_inc,
             "HouseAge" : house_age,
@@ -95,8 +97,6 @@ with tab1:
             "Longitude" : long
         }
         st.json(payload)
-        # API_URL = "http://127.0.0.1:8000/predict"
-        st.write("Sending request to:", f"{API_URL}/predict")
         try:
             with st.spinner("Predicting House price...."):
                 response = requests.post(
@@ -127,9 +127,8 @@ with tab1:
                 st.error(f"Request failed with status code: {response.status_code}")
         except requests.exceptions.Timeout:
             st.error("Request timed out. Please try again.")
-        except requests.exceptions.ConnectionError as e:
+        except requests.exceptions.ConnectionError:
             st.error("Cannot connect to FastAPI. Please check if the server is running.")
-            st.exception(e)
         except requests.exceptions.RequestException as e:
              st.error(f"API request failed: {e}")
         except (ValueError, KeyError, TypeError):
@@ -181,7 +180,6 @@ with tab2:
         predict_all = st.button("Predict All Houses")      
         
         if predict_all:
-            # API_URL = "http://127.0.0.1:8000/predict-file"
             files = {
                 "file":(uploaded_file.name, uploaded_file.getvalue(),"text/csv")
             }
@@ -204,9 +202,8 @@ with tab2:
                     st.error("Prediction failed due to a backend error.")
                 else:
                     st.error(f"Batch prediction failed: {response.status_code}")
-            except requests.exceptions.ConnectionError as e:
+            except requests.exceptions.ConnectionError:
                 st.error("Cannot connect to FastAPI. Please start the backend server.")
-                st.exception(e)
                 
             except requests.exceptions.Timeout:
                 st.error("Request timed out. Please try again.")       
