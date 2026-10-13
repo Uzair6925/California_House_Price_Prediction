@@ -13,8 +13,9 @@ st.set_page_config(
 )
 API_URL = os.getenv(
     "API_URL",
-    "http://127.0.0.1:8000"
+    "http://127.0.0.1:8000",
 ).rstrip("/")
+st.write("API URL:", API_URL)
 #Header
 st.title("🏠 California House Price Predictor")
 st.write("Predict California Hoousing Values in seconds with the power of AI")
