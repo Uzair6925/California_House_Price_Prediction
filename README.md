@@ -53,7 +53,7 @@ The application supports both individual predictions and batch predictions throu
 | `/docs` | GET | Interactive Swagger API documentation |
 
 ## Live Deployment
-**Web Application:** Add your Streamlit application URL here.
+**Web Application:** https://californiahousepriceprediction-d8imbmbsfri4z2xncqnhhm.streamlit.app/.
 **FastAPI Documentation:** https://california-house-price-prediction-6pre.onrender.com/docs
 ## Local Installation
 Clone the repository and install dependencies using `uv`.
