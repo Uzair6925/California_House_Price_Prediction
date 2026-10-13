@@ -3,6 +3,7 @@ from fastapi import requests
 import requests
 import pandas as pd
 import io
+import os
 
 #Page configuration
 st.set_page_config(
@@ -10,7 +11,10 @@ st.set_page_config(
     page_icon="🏠",
     layout="wide"
 )
-
+API_URL = os.getenv(
+    "API_URL",
+    "http://127.0.0.1:8000"
+).rstrip("/")
 #Header
 st.title("🏠 California House Price Predictor")
 st.write("Predict California Hoousing Values in seconds with the power of AI")
@@ -94,7 +98,7 @@ with tab1:
         try:
             with st.spinner("Predicting House price...."):
                 response = requests.post(
-                    API_URL,
+                    f"{API_URL}/predict",
                     json=payload,
                     timeout=10
                 )
@@ -181,9 +185,9 @@ with tab2:
             try:
                 st.session_state.pop("batch_csv", None)
                 response = requests.post(
-                    API_URL,
+                    f"{API_URL}/predict-file",
                     files=files,
-                    timeout=30                  
+                    timeout=(10,120)                  
                 )
                 # st.write(response.status_code)
                 if response.status_code == 200:
@@ -252,7 +256,7 @@ with tab2:
 
                 # Prediction Visualization
                 st.divider()
-                st.subheader("📈 Predicted Housing Values")
+                st.subheader("Predicted Housing Values")
                 chart_df = pd.DataFrame({
                     "House": range(1, len(prices) + 1),
                     "Predicted Price (USD)": prices.to_numpy()
