@@ -181,7 +181,7 @@ with tab2:
         predict_all = st.button("Predict All Houses")      
         
         if predict_all:
-            API_URL = "http://127.0.0.1:8000/predict-file"
+            # API_URL = "http://127.0.0.1:8000/predict-file"
             files = {
                 "file":(uploaded_file.name, uploaded_file.getvalue(),"text/csv")
             }
