@@ -84,7 +84,7 @@ with tab1:
     if sub:
         if long < -180 or long > 180:
              st.error("Invalid Longitude! Enter a value between -180 and 180.")
-        elif lat < -90 or lat > 90:
+        if lat < -90 or lat > 90:
                 st.error("Invalid Latitude! Enter a value between -90 and 90.")
         payload = {
             "MedInc" : med_inc,
