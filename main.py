@@ -77,41 +77,112 @@ def predict(house:houseFeatures):
         )
  
 @app.post("/predict-file")
-async def predict_file(file:UploadFile=File(...)):
+async def predict_file(file: UploadFile = File(...)):
+    
+    # Check file extension
     if not file.filename.endswith(".csv"):
         raise HTTPException(
             status_code=400,
-            detail="Please upload csv file only"
-        )       
-    
+            detail="Please upload CSV file only."
+        )
     contents = await file.read()
-    
-    df = pd.read_csv    (io.BytesIO(contents))
-    
+    df = pd.read_csv(io.BytesIO(contents))
+
     required_columns = [
-        'MedInc',"HouseAge","AveRooms","AveBedrms","Population",
-        "AveOccup","Latitude","Longitude"
+        "MedInc",
+        "HouseAge",
+        "AveRooms",
+        "AveBedrms",
+        "Population",
+        "AveOccup",
+        "Latitude",
+        "Longitude"
     ]
-    
+
+    # Check missing columns
     missing_col = [
         col for col in required_columns
         if col not in df.columns
     ]
-    
     if missing_col:
         raise HTTPException(
             status_code=400,
-            detail=f"These columns are missing from your file {missing_col}"
+            detail=f"Missing columns: {missing_col}"
         )
-    
-    if len(df)  == 0:
+    # Check empty dataset
+    if len(df) == 0:
         raise HTTPException(
             status_code=400,
-            detail="the uploaded file has no rows"
+            detail="The uploaded CSV file has no rows."
+        )
+
+    # Convert required columns to numeric
+    numeric_df = df[required_columns].apply(
+        pd.to_numeric,
+        errors="coerce"
+    )
+    # Replace infinite values with NaN
+    numeric_df = numeric_df.replace(
+        [float("inf"), float("-inf")],
+        float("nan")
+    )
+
+    # Features that must be greater than zero
+    positive_features = [
+        "MedInc",
+        "HouseAge",
+        "AveRooms",
+        "AveBedrms",
+        "Population",
+        "AveOccup"
+    ]
+
+    # Collect all validation errors
+    errors = []
+    for i in range(len(numeric_df)):
+        row = numeric_df.iloc[i]
+        row_num = i + 2
+        for col in required_columns:
+            value = row[col]
+
+            # Check missing or non-numeric values
+            if pd.isna(value):
+                errors.append(
+                    f"Row {row_num}: {col} is required and must be numeric."
+                )
+
+            # Check positive features
+            elif col in positive_features and value <= 0:
+                errors.append(
+                    f"Row {row_num}: {col} must be greater than 0."
+                )
+
+            # Check Latitude
+            elif col == "Latitude" and not (-90 <= value <= 90):
+                errors.append(
+                    f"Row {row_num}: Latitude must be between -90 and 90."
+                )
+
+            # Check Longitude
+            elif col == "Longitude" and not (-180 <= value <= 180):
+                errors.append(
+                    f"Row {row_num}: Longitude must be between -180 and 180."
+                )
+
+    # Return validation errors after checking all rows
+    if errors:
+        displayed_errors = errors[:20]
+        if len(errors) > 20:
+            displayed_errors.append(
+                f"And {len(errors) - 20} more validation errors."
+            )
+        raise HTTPException(
+            status_code=400,
+            detail="\n\n".join(displayed_errors)
         )
         
     try:
-        predictions = model.predict(df[required_columns])
+        predictions = model.predict(numeric_df)
         
         df["predicted_columns_usd"] = predictions * 100000
         df["predicted_columns_usd"] = df["predicted_columns_usd"].apply(lambda x:f"${x:,.0f}") 

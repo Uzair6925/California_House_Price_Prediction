@@ -30,109 +30,168 @@ tab1, tab2 = st.tabs([
 with tab1:
     st.subheader("Enter House Features")
     
-    with st.form("House_Form"):
+    with st.form("House_Form",enter_to_submit=False):
         col1, col2 = st.columns(2)
         with col1:
             med_inc = st.number_input(
                 "Median Income",
-                min_value=0.01,
-                value=3.5
+                value=None,
+                placeholder="Must be greater than 0",
+                step=0.01
             )
+            med_inc_error= st.empty()
             house_age = st.number_input(
                 "House Age",
-                min_value=1.0,
-                max_value=52.0,
-                value = 1.0,
+                value =None,
+                placeholder="Greater than 0",
                 step=1.0
             )
+            house_age_error = st.empty()
             ave_rooms = st.number_input(
                 "Average Rooms",
                 min_value=0.01,
-                value=5.5
+                placeholder="Greater than 0",
+                value=None,
+                step=0.1
             )
+            avg_rooms_error = st.empty()
             av_bedrms = st.number_input(
                 "Aevrage Bedrooms",
-                min_value=0.01,
-                value=1.1
+                placeholder="Greater than 0",
+                value=None,
+                step=0.1
             )
+            avg_bedrms_error = st.empty()
         with col2:
             popu= st.number_input(
                 "Population",
-                min_value=0.01,
-                value= 800.0
+                placeholder="Greater than 0",
+                value= None,
+                step=1
             )
+            pop_error  = st.empty()
             ave_occup = st.number_input(
                 "Average Occupacy",
-                min_value=0.01, 
-                value=3.0
+                placeholder="Greater than 0",
+                value=None,
+                step=0.1
             )
+            ave_occup_error = st.empty()
             lat = st.number_input(
                 "Latitude",
                 step=0.01,
-                value=37.33,
-                help="Allowed range: -90 to 90"
+                placeholder="Range: -90 to 90",
+                value=None
             )
+            lat_error = st.empty()
             long = st.number_input(
                 "Longitude",
+                placeholder="Range: -180 to 180",
                 step=0.01,
-                value=-121.89,
-                help="Enter longitude between -180 and 180"
+                value=None
             )
+            long_error = st.empty()
             
-        sub = st.form_submit_button("Submit data")
+        sub = st.form_submit_button("Submit Data")
     
     if sub:
-        if long < -180 or long > 180:
-             st.error("Invalid Longitude! Enter a value between -180 and 180.")
-        if lat < -90 or lat > 90:
-                st.error("Invalid Latitude! Enter a value between -90 and 90.")
-        payload = {
-            "MedInc" : med_inc,
-            "HouseAge" : house_age,
-            "AveRooms" : ave_rooms,
-            "AveBedrms" : av_bedrms,
-            "Population" : popu,
-            "AveOccup" : ave_occup,
-            "Latitude" : lat,
-            "Longitude" : long
-        }
-        st.json(payload)
-        try:
-            with st.spinner("Predicting House price...."):
-                response = requests.post(
-                    f"{API_URL}/predict",
-                    json=payload,
-                    timeout=(10,120)
-                )
-        # st.write(response.status_code)
-            if response.status_code ==200:
-            
-                result = response.json()
-                price = result["predicted_price"]
-                st.metric(
-                    label="Predicted House Price",
-                    value=price
-                )
-                price_range = result.get("fidence range")
-                st.success("House Price Predicted Successfully!")
-                st.divider()
-                st.info(f"Estimated price range: {price_range}")
-                st.caption("This is an estimated error band, not a guaranteed price range.")
-                
-            elif response.status_code == 422:
-                st.error("Invalid house features. Please check your inputs.")
-            elif response.status_code == 500:
-                st.error("Prediction failed due to a backend error.")
-            else:
-                st.error(f"Request failed with status code: {response.status_code}")
-        except requests.exceptions.Timeout:
-            st.error("Request timed out. Please try again.")
-        except requests.exceptions.ConnectionError:
-            st.error("Cannot connect to FastAPI. Please check if the server is running.")
-        except requests.exceptions.RequestException as e:
-             st.error(f"API request failed: {e}")
-        except (ValueError, KeyError, TypeError):
-            st.error("Received an invalid response from the prediction server.")
+        has_error = False
+        if med_inc is None:
+            med_inc_error.caption(":red[Please enter Median Income.]")
+            has_error = True
+        elif med_inc <= 0:
+            med_inc_error.caption(":red[Value must be greater than 0.]")
+            has_error = True
+        if house_age is None:
+            house_age_error.caption(":red[Please enter House Age.]")
+            has_error = True
+        elif house_age <= 0:
+            house_age_error.caption(":red[Value must be greater than 0.]")
+            has_error = True
+        if ave_rooms is None:
+            avg_rooms_error.caption(":red[Please enter Average Rooms.]")
+            has_error = True
+        elif ave_rooms <= 0:
+            avg_rooms_error.caption(":red[Value must be greater than 0.]")
+            has_error = True
+        if av_bedrms is None:
+            avg_bedrms_error.caption(":red[Please enter Average Bedrooms.]")
+            has_error = True
+        elif av_bedrms <= 0:
+            avg_bedrms_error.caption(":red[Value must be greater than 0.]")
+            has_error = True
+        if popu is None:
+            pop_error.caption(":red[Please enter Population.]")
+            has_error = True
+        elif popu <= 0:
+            pop_error.caption(":red[Value must be greater than 0.]")
+            has_error = True
+        if ave_occup is None:
+            ave_occup_error.caption(":red[Please enter Average Occupancy.]")
+            has_error = True
+        elif ave_occup <= 0:
+            ave_occup_error.caption(":red[Value must be greater than 0.]")
+            has_error = True
+        if lat is None:
+            lat_error.caption(":red[Please enter Latitude.]")
+            has_error = True
+        elif not (-90 <= lat <= 90):
+            lat_error.caption(":red[Allowed range: -90 to 90.]")
+            has_error = True
+        if long is None:
+            long_error.caption(":red[Please enter Longitude.]")
+            has_error = True
+        elif not (-180 <= long <= 180):
+            long_error.caption(":red[Allowed range: -180 to 180.]")
+            has_error = True
+        if not has_error:
+                payload = {
+                    "MedInc" : med_inc,
+                    "HouseAge" : house_age,
+                    "AveRooms" : ave_rooms,
+                    "AveBedrms" : av_bedrms,
+                    "Population" : popu,
+                    "AveOccup" : ave_occup,
+                    "Latitude" : lat,
+                    "Longitude" : long
+                }
+                # st.json(payload)
+                try:
+                    with st.spinner("Predicting House price...."):
+                        response = requests.post(
+                            f"{API_URL}/predict",
+                            json=payload,
+                            timeout=(10,120)
+                        )
+                # st.write(response.status_code)
+                    if response.status_code ==200:
+                    
+                        result = response.json()
+                        price = result["predicted_price"]
+                        st.metric(
+                            label="Predicted House Price",
+                            value=price
+                        )
+                        price_range = result.get("fidence range")
+                        st.success("House Price Predicted Successfully!")
+                        st.divider()
+                        st.info(f"Estimated price range: {price_range}")
+                        st.caption("This is an estimated error band, not a guaranteed price range.")
+                        
+                    elif response.status_code == 422:
+                        st.error("Invalid house features. Please check your inputs.")
+                    elif response.status_code == 500:
+                        st.error("Prediction failed due to a backend error.")
+                    else:
+                        st.error(f"Request failed with status code: {response.status_code}")
+                except requests.exceptions.Timeout:
+                    st.error("Request timed out. Please try again.")
+                except requests.exceptions.ConnectionError:
+                    st.error("Cannot connect to FastAPI. Please check if the server is running.")
+                except requests.exceptions.RequestException as e:
+                    st.error(f"API request failed: {e}")
+                except (ValueError, KeyError, TypeError):
+                    st.error("Received an invalid response from the prediction server.")
 
 # Batch prediction tab
 
